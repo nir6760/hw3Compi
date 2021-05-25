@@ -1,0 +1,162 @@
+%{ /* Declarations section */
+	#include "helper.hpp"
+	#include "hw3_output.hpp"
+	
+	#include <iostream>
+	#include <stdlib.h>
+	#define YYDEBUG 1
+
+	using namespace std;
+	using namespace output;
+	extern int yylex();
+	extern int yylineno;
+	int yyerror(const char * message);
+%}
+
+
+
+%right ASSIGN
+%left OR
+%left AND
+%left EQUALOP
+%right IF NOT
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN WHILE BREAK CONTINUE SWITCH CASE DEFAULT COLON SC COMMA ID NUM STRING ENDOFFILE
+%nonassoc RELOP
+%left PLUS MINUS
+%left DIV MULT
+%left LPAREN RPAREN LBRACE RBRACE
+%nonassoc ELSE
+
+
+%%
+
+Program : {InitPrintFunctions();}Funcs ENDOFFILE{checkMain();}
+;
+Funcs :  FuncDecl Funcs{}
+		| {}
+;
+FuncDecl : RetType ID LPAREN Formals RPAREN LBRACE{
+	addFunc($2.name, $1.ret_type, $4.params_type, $4.params_names );
+	} Statements RBRACE{closeScope(true);}
+	
+;
+RetType :   Type{$$.ret_type = $1.type;}
+            |VOID {$$.ret_type = "VOID";}
+;
+Formals :   FormalList{
+	$$.params_type = $1.params_type;
+	$$.params_names = $1.params_names;
+}
+			|/*epsilon*/{
+				$$.params_type = {};
+				$$.params_names = {};}
+;
+FormalList : FormalDect COMMA FormalList{
+				$$.params_type = $1.params_type;
+				mergeVectors($$.params_type,$3.params_type );
+             	$$.params_names = $1.params_names;
+				mergeVectors($$.params_names,$3.params_names );}
+			|FormalDect{$$.params_type = $1.params_type; 
+						$$.params_names = $1.params_names;}
+            
+;
+FormalDect : Type ID{$$.params_names = {$2.name};
+					 $$.params_type = {$1.type};}
+;
+Statements :	Statements Statement{} 
+				|Statement{}
+            
+;
+Statement : LBRACE{openScope(false,false);} Statements RBRACE{closeScope(true);}
+			|Type ID ASSIGN Exp SC{insertVarToSymbolTable($2.name, $1.type);
+								 checkValidTypes($1.type, $4.type);
+								 checkValidCast($1.type, $4.type);}
+            |Type ID SC{insertVarToSymbolTable($2.name, $1.type);}
+            |ID ASSIGN Exp SC{
+				checkValidID($1.name);
+				$1.type = typeOfSym($1.name);
+				checkValidTypes($1.type, $3.type);}
+            |Call SC{}
+            |RETURN Exp SC{checkRetType($2.type);}
+			|RETURN SC{checkRetType();}
+			|IF LPAREN MExp RPAREN MStatement
+			|IF LPAREN MExp RPAREN MStatement ELSE
+			{openScope(false,false);} Statement{closeScope(true);}
+            |WHILE LPAREN Exp{isBool($3.type);} RPAREN{openScope(true,false);} Statement{closeScope(true);}
+            |BREAK SC{checkUnexpected("BREAK");}
+            |CONTINUE SC{checkUnexpected("CONTINUE");}
+            |SWITCH LPAREN Exp{isIntByte($3.type);} RPAREN LBRACE{openScope(false,true);} CaseList RBRACE{closeScope(true);}
+;
+MExp : 	Exp{isBool($1.type);openScope(false,false);}
+;
+MStatement : 	Statement{closeScope(true);}
+;
+Call :  ID LPAREN ExpList RPAREN{	checkFuncDecl($1.name, $3.params_type);
+									$$.type = typeOfSym($1.name);}
+        |ID LPAREN RPAREN{	checkFuncDecl($1.name, vector<string>());
+							$$.type =typeOfSym($1.name); }
+;
+ExpList : 	Exp COMMA ExpList{$$.params_type = {$1.type};
+							 mergeVectors($$.params_type,$3.params_type );}
+			|Exp{$$.params_type = {$1.type};}
+        
+;
+Type : INT{$$.type = "INT";}
+        |BYTE{$$.type = "BYTE";}
+        |BOOL{$$.type = "BOOL";}
+;
+Exp : LPAREN Exp RPAREN{$$.type = $2.type;}
+    |Exp MULT Exp{checkValidNumeric($1.type, $3.type);
+				  $$.type =findExpType($1.type, $3.type); }
+	|Exp DIV Exp{checkValidNumeric($1.type, $3.type);
+				  $$.type =findExpType($1.type, $3.type); }
+	|Exp MINUS Exp{checkValidNumeric($1.type, $3.type);
+				  $$.type =findExpType($1.type, $3.type); }
+	|Exp PLUS Exp{checkValidNumeric($1.type, $3.type);
+				  $$.type =findExpType($1.type, $3.type); }
+    |ID{checkValidID($1.name);
+		$$.type = typeOfSym($1.name);}
+    |Call{$$.type = $1.type;}
+	|NUM B{	checkOverFlowByte($1.val);
+	 		$$.type = "BYTE";}
+    |NUM{$$.type = "INT";}
+    |STRING{$$.type = "STRING";}
+    |TRUE{$$.type = "BOOL";}
+    |FALSE{$$.type = "BOOL";}
+    |NOT Exp{isBool($2.type);
+			 $$.type = "BOOL";}
+    |Exp AND Exp{isBool($1.type);
+				isBool($3.type);
+				 $$.type = "BOOL";}
+    |Exp OR Exp{isBool($1.type);
+				isBool($3.type);
+				 $$.type = "BOOL";}
+    |Exp RELOP Exp{	checkValidNumeric($1.type, $3.type);
+					$$.type = "BOOL";}
+	|Exp EQUALOP Exp{checkValidNumeric($1.type, $3.type);
+					$$.type = "BOOL";}
+    //|LPAREN Type RPAREN Exp{}
+;
+CaseList :  CaseDeal CaseList{}
+            |CaseDeal{}
+            |DEFAULT COLON Statements{}
+;
+CaseDeal : CASE NUM COLON Statements{}
+;
+
+%%
+/* c code */
+
+
+int main()
+{
+	//yydebug = 1;
+	return yyparse();
+}
+
+int yyerror(const char * message)
+{
+	errorSyn(yylineno);
+	exit(0);
+}
+
