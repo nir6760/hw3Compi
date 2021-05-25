@@ -30,6 +30,7 @@ void stype::editStype(bool is_func,const string& n, const string& t,const vector
 void checkName(const string& name){ 
 	if (symbol_tabl_hash.find(name) != symbol_tabl_hash.end()) {
 		errorDef(yylineno, name);
+		delete this_func;
 		exit(1);
 	}
 }
@@ -121,6 +122,7 @@ void helperInsertVar(const string& name, const string& type, int offset) {
 void checkMain() { 
 	if (!was_main) {
 		errorMainMissing();
+		delete this_func;
 		exit(1);
 	}
 	closeScope(true);
@@ -137,6 +139,7 @@ void mergeVectors(vector<string>& v1, vector<string>& v2){
 void checkValidTypes(const string& t1, const string& t2) { 
 	if (t1 != t2 && !(t1 == "INT" && t2 == "BYTE")) {
 		errorMismatch(yylineno);
+		delete this_func;
 		exit(1);
 	}
 }
@@ -146,6 +149,7 @@ void checkValidID(const string& name) {
 	if (symbol_tabl_hash.find(name) == symbol_tabl_hash.end()||
 	symbol_tabl_hash[name].is_function){
 		errorUndef(yylineno, name);
+		delete this_func;
 		exit(1);
 	}
 }
@@ -165,12 +169,14 @@ void checkUnexpected(const string& unexp) {
 	if(unexp == "CONTINUE"){
 		if (number_of_while == 0){
 			errorUnexpectedContinue(yylineno);
+			delete this_func;
 			exit(1);
 		}
 	}
 	if(unexp == "BREAK"){
 		if (number_of_while == 0 && number_of_switch == 0){
 			errorUnexpectedBreak(yylineno);
+			delete this_func;
 			exit(1);
 		}
 	}
@@ -180,6 +186,7 @@ void checkUnexpected(const string& unexp) {
 void isBool(const string& t) { 
 	if (t != "BOOL") {
 		errorMismatch(yylineno);
+		delete this_func;
 		exit(1);
 	}
 }
@@ -187,6 +194,7 @@ void isBool(const string& t) {
 void isIntByte(const string& t) { //check if type is int or byte
 	if (t != "INT" && t != "BYTE"  ) {
 		errorMismatch(yylineno);
+		delete this_func;
 		exit(1);
 	}
 }
@@ -195,6 +203,7 @@ void isIntByte(const string& t) { //check if type is int or byte
 void checkOverFlowByte(int num) { 
 	if (num > BYTE_EDGE) {
 		errorByteTooLarge(yylineno, to_string(num));
+		delete this_func;
 		exit(1);
 	}
 }
@@ -204,16 +213,19 @@ void checkFuncDecl(const string& name, const vector<string>& params_types) {
 	if (symbol_tabl_hash.find(name) == symbol_tabl_hash.end()||
 	!symbol_tabl_hash[name].is_function) {
 		errorUndefFunc(yylineno, name);
+		delete this_func;
 		exit(1);
 	}
 	stype& f = symbol_tabl_hash[name];
 	if (f.params_type.size() != params_types.size()) {
 		errorPrototypeMismatch(yylineno, name, f.params_type);
+		delete this_func;
 		exit(1);
 	}
 	for (unsigned int i =0; i < params_types.size(); ++i) {
 		if (f.params_type[i] != params_types[i] && !(f.params_type[i] == "INT" && params_types[i] == "BYTE")) {
 			errorPrototypeMismatch(yylineno, name, f.params_type);
+			delete this_func;
 			exit(1);
 		}
 	}
@@ -226,6 +238,7 @@ void checkValidNumeric(const string& t1, const string& t2) {
 		(t2 == "INT" || t2 == "BYTE")) 
 		return;
 	errorMismatch(yylineno);
+	delete this_func;
 	exit(1);
 }
 
@@ -233,6 +246,7 @@ void checkValidNumeric(const string& t1, const string& t2) {
 void checkValidCast(const string& t1, const string& t2) { 
 	if (t1 == "BYTE" && t2 == "INT") {
 		errorMismatch(yylineno);
+		delete this_func;
 		exit(1);
 	}
 	
