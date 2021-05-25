@@ -94,7 +94,7 @@ default                        {return DEFAULT;}
 									return STRING;}
 .		{
 			errorLex(yylineno);
-			exit(0);
+			exit(1);
 		}
 <INITIAL><<EOF>>        {BEGIN(thisistheend);return ENDOFFILE;}
 <thisistheend><<EOF>>	{return 0;}
