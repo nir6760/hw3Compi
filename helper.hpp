@@ -24,7 +24,7 @@ class cut_type{
 	int val;
     string type;
     string ret_type;
-	string name; //name
+	string name;
 	vector<string> params_type;
 	vector<string> params_names;
 };
@@ -43,11 +43,11 @@ class stype    //class for variable inside symbols
     
     stype(){}
 
-    stype(bool is_func ,const string& n, const string& t,  int of)://variable or parameter
+    stype(bool is_func ,const string& n, const string& t,  int of)://for variable or parameter
     is_function(is_func), name(n), type(t),  offset(of) {}
 
-    stype(bool is_func,const string& n, const string& t,const vector<string>& p_type,const vector<string>& p_names,  int of )://function
-    is_function(is_func), name(n), type(t), params_type(p_type), params_names(p_names),  offset(of) {}
+    stype(bool is_func,const string& n, const string& t,const vector<string>& p_type,const vector<string>& p_names,  int of ):
+    is_function(is_func), name(n), type(t), params_type(p_type), params_names(p_names),  offset(of) {}//for function
 	
 	void editStype(bool is_func,const string& n, const string& t,const vector<string>& p_type,const vector<string>& p_names,  int of );//edit stype for function
 };
@@ -76,7 +76,6 @@ void closeScope(bool print);
 void addFunc(const string& name, const string& ret_type
 , const vector<string>& params_type, const vector<string>& params_names);
 void insertVarToSymbolTable(const string& name, const string& type);
-void insertVar(const string& name, const string& type, int offset);
 void checkMain();
 void mergeVectors(vector<string>& v1, vector<string>& v2);
 void checkValidTypes(const string& t1, const string& t2);

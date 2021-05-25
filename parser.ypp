@@ -157,6 +157,6 @@ int main()
 int yyerror(const char * message)
 {
 	errorSyn(yylineno);
-	exit(0);
+	exit(1);
 }
 
