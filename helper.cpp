@@ -14,6 +14,7 @@ stype* this_func = new stype();
 bool was_main = false;
 
 void checkName(const string& name);
+bool checkIsItMain(const string& name, const string& ret_type, const vector<string>& params_type);
 void helperInsertVar(const string& name, const string& type, int offset);
 
 // edit stype for the current function
@@ -86,7 +87,20 @@ void InitPrintFunctions() {
 	closeScope(false);
 	
 }
-
+//check if Main was valid decleared and close the global scope
+void checkWasMain() { 
+	if (!was_main) {
+		errorMainMissing();
+		delete this_func;
+		exit(1);
+	}
+}
+//check if Main was valid decleared and close the global scope
+bool checkIsItMain(const string& name, const string& ret_type, const vector<string>& params_type) { 
+	if ("main" == name && "VOID" == ret_type && params_type.empty())
+		return true;
+	return false;
+}
 //add function to symbol table and open scope for it
 void addFunc(const string& name, const string& ret_type, const vector<string>& params_type, const vector<string>& params_names) {
 	checkName(name);
@@ -99,8 +113,18 @@ void addFunc(const string& name, const string& ret_type, const vector<string>& p
 		i++;
 		helperInsertVar(p_name, params_type[i-1], -i);
 	}
-	if ("main" == name && "VOID" == ret_type && params_type.empty())
-		was_main = true;
+	if (checkIsItMain(name, ret_type, params_type)){
+		if(was_main){
+			errorMainMissing();
+			delete this_func;
+			exit(1);
+		}
+		else{
+			was_main = true;
+		}
+	}
+		
+		
 }
 
 // insert var to symbol table
@@ -118,15 +142,12 @@ void helperInsertVar(const string& name, const string& type, int offset) {
 
 }
 
-//check if Main was valid decleared and close the global scope
-void checkMain() { 
-	if (!was_main) {
-		errorMainMissing();
-		delete this_func;
-		exit(1);
-	}
+
+//end global scope and compilation process
+int endComp(){
 	closeScope(true);
 	delete this_func;
+	return 0;
 }
 
 

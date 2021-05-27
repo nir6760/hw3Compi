@@ -30,7 +30,7 @@
 
 %%
 
-Program : {InitPrintFunctions();}Funcs ENDOFFILE{checkMain();}
+Program : Funcs ENDOFFILE{checkWasMain();}
 ;
 Funcs :  FuncDecl Funcs{}
 		| {}
@@ -151,11 +151,14 @@ CaseDeal : CASE NUM COLON Statements{}
 int main()
 {
 	//yydebug = 1;
-	return yyparse();
+	InitPrintFunctions();
+	yyparse();
+	return endComp();
+	
 }
 
 int yyerror(const char * message)
-{
+{	
 	errorSyn(yylineno);
 	exit(1);
 }

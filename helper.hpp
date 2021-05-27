@@ -6,20 +6,8 @@
 #include <unordered_map>
 using namespace std;
 
-/*
-class Node{
-    public:
-    string name;
-    Node(string n): name(n){}
-    
-};
-
-class NUM : public Node{
-    int val;
-
-};
-*/
-class cut_type{
+class cut_type{// class for value properties
+	
     public:
 	int val;
     string type;
@@ -53,7 +41,7 @@ class stype    //class for variable inside symbols
 };
 
 
-class inside_scope{
+class inside_scope{// class for scope properties
 	public:
     int curr_scope;
 	vector<stype> symbols_lst;
@@ -76,7 +64,8 @@ void closeScope(bool print);
 void addFunc(const string& name, const string& ret_type
 , const vector<string>& params_type, const vector<string>& params_names);
 void insertVarToSymbolTable(const string& name, const string& type);
-void checkMain();
+void checkWasMain();
+int endComp();
 void mergeVectors(vector<string>& v1, vector<string>& v2);
 void checkValidTypes(const string& t1, const string& t2);
 void checkValidID(const string& name);
@@ -91,5 +80,4 @@ void checkValidNumeric(const string& t1, const string& t2);
 void checkValidCast(const string& t1, const string& t2);
 string findExpType(const string& t1, const string& t2);
 
-void print_debug(const string& s);
 #endif

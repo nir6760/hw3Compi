@@ -12,6 +12,7 @@ using namespace output;
 
 %option yylineno 
 %option noyywrap
+%option nounput
 %x comment
 %x thisistheend
 
