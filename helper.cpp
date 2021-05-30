@@ -181,8 +181,22 @@ string typeOfSym(const string& name){
 }
 
 //check if the return type is identical to what was decleared in the function
-void checkRetType(const string& type) { 
+void checkRetType(const string& type) {
+	if(this_func->type=="VOID"){
+		errorMismatch(yylineno);
+		delete this_func;
+		exit(1);
+	}
 	checkValidTypes(this_func->type, type);
+}
+
+//check if the return type is void
+void checkVoidRetType() {
+	if(this_func->type!="VOID"){
+		errorMismatch(yylineno);
+		delete this_func;
+		exit(1);
+	}
 }
 
 // check for unexpected break or continue

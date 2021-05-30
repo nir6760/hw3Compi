@@ -78,7 +78,7 @@ Statement : LBRACE{openScope(false,false);} Statements RBRACE{closeScope(true);}
 				checkValidTypes($1.type, $3.type);}
             |Call SC{}
             |RETURN Exp SC{checkRetType($2.type);}
-			|RETURN SC{checkRetType();}
+			|RETURN SC{checkVoidRetType();}
 			|IF LPAREN MExp RPAREN MStatement
 			|IF LPAREN MExp RPAREN MStatement ELSE
 			{openScope(false,false);} Statement{closeScope(true);}
